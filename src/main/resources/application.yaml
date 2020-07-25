@@ -1,0 +1,20 @@
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ben
+    password: Dead082Dab868
+    url: jdbc:mariadb://192.168.0.27:3306/recipes
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+
+    hibernate:
+      ddl-auto: none
+
+    generate-ddl: false
+
+
+
