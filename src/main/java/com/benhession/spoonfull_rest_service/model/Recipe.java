@@ -1,7 +1,7 @@
 package com.benhession.spoonfull_rest_service.model;
 
 import lombok.Data;
-import org.hibernate.annotations.RowId;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.time.Duration;
