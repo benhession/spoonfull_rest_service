@@ -29,4 +29,8 @@ public class RecipeService {
     public Optional<Recipe> recipeFromId(int id) {
         return recipeRepository.findById(id);
     }
+
+    public Long count() {
+        return recipeRepository.count();
+    }
 }

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
 @RequestMapping(path = "/recipes", produces = "application/json")
@@ -28,10 +29,13 @@ public class RecipeController {
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @GetMapping
-    public CollectionModel<RecipeEntity> findRecipes(@RequestParam Optional<Integer> page,
+    public ResponseEntity<CollectionModel<RecipeEntity>> findRecipes(@RequestParam Optional<Integer> page,
                                                             @RequestParam Optional<Integer> size) {
 
+        final int recipeCount = recipeService.count().intValue();
+        AtomicBoolean pageInRange = new AtomicBoolean(true);
         Iterable<Recipe> recipes;
+
 
         Optional<PageRequest> pageRequest = (page.isPresent() && size.isPresent())
                 ? Optional.of(PageRequest.of(page.get(), size.get()))
@@ -46,10 +50,70 @@ public class RecipeController {
         entities.add(
                 WebMvcLinkBuilder.linkTo(
                         WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(page, size)
-                ).withRel("findRecipes")
+                ).withRel("self")
         );
 
-        return entities;
+        pageRequest.ifPresent(
+                request -> {
+                    int firstPage = request.first().getPageNumber();
+                    int lastPage = recipeCount / request.getPageSize();
+                    int currentPage = request.getPageNumber();
+                    int pageSize = request.getPageSize();
+
+                    if (recipeCount % pageSize == 0) {
+                        lastPage -= 1;
+                    }
+
+                    if (currentPage > lastPage) {
+                        pageInRange.set(false);
+                    }
+
+                    entities.add(
+                            WebMvcLinkBuilder.linkTo(
+                                    WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                            Optional.of(firstPage),
+                                            Optional.of(pageSize)
+                                    )
+                            ).withRel("firstPage")
+
+                    );
+
+                    if (currentPage != firstPage) {
+                        entities.add(
+                                WebMvcLinkBuilder.linkTo(
+                                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                                Optional.of(request.previousOrFirst().getPageNumber()),
+                                                Optional.of(pageSize)
+                                        )
+                                ).withRel("previousPage")
+                        );
+                    }
+
+                    if (currentPage != lastPage) {
+                        entities.add(
+                                WebMvcLinkBuilder.linkTo(
+                                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                                Optional.of(request.next().getPageNumber()),
+                                                Optional.of(pageSize)
+                                        )
+                                ).withRel("nextPage")
+                        );
+                    }
+
+                    entities.add(
+                            WebMvcLinkBuilder.linkTo(
+                                    WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                            Optional.of(lastPage),
+                                            Optional.of(pageSize)
+                                    )
+                            ).withRel("lastPage")
+                    );
+                }
+        );
+
+        return pageInRange.get()
+                ? new ResponseEntity<>(entities, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/{id}")
@@ -57,11 +121,9 @@ public class RecipeController {
         Optional<Recipe> recipe = recipeService.recipeFromId(id);
 
         return recipe.map(
-                theRecipe ->
-                        new ResponseEntity<>(new RecipeEntityAssembler().toModel(theRecipe), HttpStatus.OK)
+                theRecipe -> new ResponseEntity<>(new RecipeEntityAssembler().toModel(theRecipe), HttpStatus.OK)
         ).orElseGet(
-                () ->
-                        new ResponseEntity<>(null, HttpStatus.NOT_FOUND)
+                () -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND)
         );
 
     }
