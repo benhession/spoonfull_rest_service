@@ -12,7 +12,7 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
 
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
 
     generate-ddl: false
 
