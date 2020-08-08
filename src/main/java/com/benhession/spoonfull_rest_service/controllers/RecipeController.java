@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
 @RequestMapping(path = "/recipes", produces = "application/json")
@@ -32,10 +32,9 @@ public class RecipeController {
     public ResponseEntity<CollectionModel<RecipeEntity>> findRecipes(@RequestParam Optional<Integer> page,
                                                             @RequestParam Optional<Integer> size) {
 
-        final int recipeCount = recipeService.count().intValue();
-        AtomicBoolean pageInRange = new AtomicBoolean(true);
+        Long numOfRecipes = recipeService.count();
         Iterable<Recipe> recipes;
-
+        ResponseEntity<CollectionModel<RecipeEntity>> response;
 
         Optional<PageRequest> pageRequest = (page.isPresent() && size.isPresent())
                 ? Optional.of(PageRequest.of(page.get(), size.get()))
@@ -47,73 +46,22 @@ public class RecipeController {
 
         CollectionModel<RecipeEntity> entities = new RecipeEntityAssembler().toCollectionModel(recipes);
 
-        entities.add(
-                WebMvcLinkBuilder.linkTo(
-                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(page, size)
-                ).withRel("self")
-        );
-
-        pageRequest.ifPresent(
-                request -> {
-                    int firstPage = request.first().getPageNumber();
-                    int lastPage = recipeCount / request.getPageSize();
-                    int currentPage = request.getPageNumber();
-                    int pageSize = request.getPageSize();
-
-                    if (recipeCount % pageSize == 0) {
-                        lastPage -= 1;
-                    }
-
-                    if (currentPage > lastPage) {
-                        pageInRange.set(false);
-                    }
+        response = pageRequest.map(
+                request ->
+                        pageableRecipeResponse(entities, request, numOfRecipes)
+        )
+                .orElseGet(() -> {
 
                     entities.add(
                             WebMvcLinkBuilder.linkTo(
-                                    WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
-                                            Optional.of(firstPage),
-                                            Optional.of(pageSize)
-                                    )
-                            ).withRel("firstPage")
-
+                                    WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(page, size)
+                            ).withRel("self")
                     );
 
-                    if (currentPage != firstPage) {
-                        entities.add(
-                                WebMvcLinkBuilder.linkTo(
-                                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
-                                                Optional.of(request.previousOrFirst().getPageNumber()),
-                                                Optional.of(pageSize)
-                                        )
-                                ).withRel("previousPage")
-                        );
-                    }
+                    return new ResponseEntity<>(entities, HttpStatus.OK);
+                });
 
-                    if (currentPage != lastPage) {
-                        entities.add(
-                                WebMvcLinkBuilder.linkTo(
-                                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
-                                                Optional.of(request.next().getPageNumber()),
-                                                Optional.of(pageSize)
-                                        )
-                                ).withRel("nextPage")
-                        );
-                    }
-
-                    entities.add(
-                            WebMvcLinkBuilder.linkTo(
-                                    WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
-                                            Optional.of(lastPage),
-                                            Optional.of(pageSize)
-                                    )
-                            ).withRel("lastPage")
-                    );
-                }
-        );
-
-        return pageInRange.get()
-                ? new ResponseEntity<>(entities, HttpStatus.OK)
-                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        return response;
     }
 
     @GetMapping("/{id}")
@@ -125,6 +73,101 @@ public class RecipeController {
         ).orElseGet(
                 () -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND)
         );
+    }
+
+    @GetMapping("find-by-ingredients")
+    public ResponseEntity<CollectionModel<RecipeEntity>> recipeByIngredients(@RequestParam List<String> ingredients,
+                                                            @RequestParam int page, @RequestParam int size) {
+
+        Optional<ResponseEntity<CollectionModel<RecipeEntity>>> response = Optional.empty();
+
+        Long numberOfResults = recipeService.countRecipesByIngredients(ingredients);
+        if(numberOfResults > 0) {
+            PageRequest pageRequest = PageRequest.of(page, size);
+            Iterable<Recipe> recipes = recipeService.findByIngredients(ingredients, pageRequest);
+            CollectionModel<RecipeEntity> entities = new RecipeEntityAssembler().toCollectionModel(recipes);
+            response = Optional.of(pageableRecipeResponse(entities, pageRequest, numberOfResults));
+        }
+
+        return response.orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NO_CONTENT));
+
 
     }
+    
+    private ResponseEntity<CollectionModel<RecipeEntity>> pageableRecipeResponse(CollectionModel<RecipeEntity> entities,
+                                                                PageRequest request, Long totalNumOfEntities) {
+
+        boolean pageInRange = true;
+
+        int firstPage = request.first().getPageNumber();
+        int lastPage =  Math.toIntExact(totalNumOfEntities) / request.getPageSize();
+        int currentPage = request.getPageNumber();
+        int pageSize = request.getPageSize();
+
+        if (totalNumOfEntities % pageSize == 0) {
+            lastPage -= 1;
+        }
+
+        if (currentPage > lastPage) {
+            pageInRange = false;
+        }
+
+        entities.add(
+                WebMvcLinkBuilder.linkTo(
+                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                Optional.of(currentPage),
+                                Optional.of(pageSize)
+                        )
+                ).withRel("self")
+        );
+
+        entities.add(
+                WebMvcLinkBuilder.linkTo(
+                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                Optional.of(firstPage),
+                                Optional.of(pageSize)
+                        )
+                ).withRel("firstPage")
+
+        );
+
+        if (currentPage != firstPage) {
+            entities.add(
+                    WebMvcLinkBuilder.linkTo(
+                            WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                    Optional.of(request.previousOrFirst().getPageNumber()),
+                                    Optional.of(pageSize)
+                            )
+                    ).withRel("previousPage")
+            );
+        }
+
+        if (currentPage != lastPage) {
+            entities.add(
+                    WebMvcLinkBuilder.linkTo(
+                            WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                    Optional.of(request.next().getPageNumber()),
+                                    Optional.of(pageSize)
+                            )
+                    ).withRel("nextPage")
+            );
+        }
+
+        entities.add(
+                WebMvcLinkBuilder.linkTo(
+                        WebMvcLinkBuilder.methodOn(RecipeController.class).findRecipes(
+                                Optional.of(lastPage),
+                                Optional.of(pageSize)
+                        )
+                ).withRel("lastPage")
+        );
+
+
+        return pageInRange
+                ? new ResponseEntity<>(entities, HttpStatus.OK)
+                : new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+
+
+    }
+
 }
