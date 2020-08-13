@@ -14,7 +14,7 @@ public class Recipe {
     @Id
     @GeneratedValue
     @Column(name = "recipe_id")
-    private int recipeID;
+    private int recipeId;
 
     @Column(name = "name")
     private String name;
@@ -45,10 +45,8 @@ public class Recipe {
     @Column(length = 500, name = "category")
     private List<String> givenCategories;
 
-    @ElementCollection
-    @CollectionTable(name = "ingredients")
-    @Column(length = 1000, name = "ingredient")
-    private List<String> ingredients;
+    @OneToMany(targetEntity = Ingredient.class, mappedBy = "recipe")
+    private List<Ingredient> ingredients;
 
     @ElementCollection
     @CollectionTable(name = "method")

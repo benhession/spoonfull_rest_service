@@ -13,13 +13,10 @@ import java.util.List;
 @Repository
 interface RecipeRepository extends PagingAndSortingRepository<Recipe, Integer> {
 
-    Page<Recipe> findAllByRecipeIDIn(List<Integer> ids, Pageable pageable);
+    Page<Recipe> findAllByRecipeIdIn(List<Integer> ids, Pageable pageable);
 
-    // CONCAT is MariaDB syntax
-    @Query(value = "SELECT DISTINCT recipe_recipe_id " +
-            "FROM ingredients i " +
-            "WHERE i.ingredient LIKE CONCAT('%',:ingredients,'%') ",
-            nativeQuery = true)
-    List<Integer> recipeIdsFromIngredient(@Param("ingredients") String ingredient);
-
+    @Query(value = "SELECT i.recipe.recipeId " +
+            "FROM Ingredient i " +
+            "WHERE LOWER(i.description) LIKE LOWER(CONCAT('%',:ingredient, '%')) ")
+    List<Integer> recipeIdsFromIngredient(@Param("ingredient") String ingredient);
 }

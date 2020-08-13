@@ -30,23 +30,15 @@ public class RecipeService {
         return recipeRepository.findById(id);
     }
 
-    public Long count() {
-        return recipeRepository.count();
+    public int count() {
+        return Math.toIntExact(recipeRepository.count());
     }
 
-    public Iterable<Recipe> findByIngredients(List<String> ingredients, Pageable pageable) {
-
-        List<Integer> ids = findIngredientIds(ingredients);
-
-        return recipeRepository.findAllByRecipeIDIn(ids, pageable);
+    public Page<Recipe> findRecipesFromIdIn(List<Integer> ids, Pageable pageable) {
+        return recipeRepository.findAllByRecipeIdIn(ids, pageable);
     }
 
-    public Long countRecipesByIngredients(List<String> ingredients) {
-
-        return (long) findIngredientIds(ingredients).size();
-    }
-
-    private List<Integer> findIngredientIds(List<String> ingredients) {
+    public List<Integer> findRecipeIdsFromIngredientIn(List<String> ingredients) {
 
         List<String> theIngredients = new ArrayList<>(ingredients);
 
@@ -56,4 +48,7 @@ public class RecipeService {
 
         return new ArrayList<>(ids);
     }
+
+
+
 }

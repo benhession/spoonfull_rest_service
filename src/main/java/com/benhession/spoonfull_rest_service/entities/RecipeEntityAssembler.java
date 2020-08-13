@@ -17,7 +17,7 @@ public class RecipeEntityAssembler extends RepresentationModelAssemblerSupport<R
 
     @Override
     public RecipeEntity toModel(Recipe recipe) {
-        return createModelWithId(recipe.getRecipeID(), recipe);
+        return createModelWithId(recipe.getRecipeId(), recipe);
     }
 
 

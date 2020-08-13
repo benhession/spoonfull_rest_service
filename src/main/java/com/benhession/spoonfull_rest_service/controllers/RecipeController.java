@@ -5,6 +5,7 @@ import com.benhession.spoonfull_rest_service.entities.RecipeEntity;
 import com.benhession.spoonfull_rest_service.entities.RecipeEntityAssembler;
 import com.benhession.spoonfull_rest_service.model.Recipe;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
@@ -32,7 +33,7 @@ public class RecipeController {
     public ResponseEntity<CollectionModel<RecipeEntity>> findRecipes(@RequestParam Optional<Integer> page,
                                                             @RequestParam Optional<Integer> size) {
 
-        Long numOfRecipes = recipeService.count();
+        int numOfRecipes = recipeService.count();
         Iterable<Recipe> recipes;
         ResponseEntity<CollectionModel<RecipeEntity>> response;
 
@@ -81,12 +82,13 @@ public class RecipeController {
 
         Optional<ResponseEntity<CollectionModel<RecipeEntity>>> response = Optional.empty();
 
-        Long numberOfResults = recipeService.countRecipesByIngredients(ingredients);
-        if(numberOfResults > 0) {
+        List<Integer> recipeIds = recipeService.findRecipeIdsFromIngredientIn(ingredients);
+        if(!recipeIds.isEmpty()) {
             PageRequest pageRequest = PageRequest.of(page, size);
-            Iterable<Recipe> recipes = recipeService.findByIngredients(ingredients, pageRequest);
+            Page<Recipe> recipes = recipeService.findRecipesFromIdIn(recipeIds, pageRequest);
+
             CollectionModel<RecipeEntity> entities = new RecipeEntityAssembler().toCollectionModel(recipes);
-            response = Optional.of(pageableRecipeResponse(entities, pageRequest, numberOfResults));
+            response = Optional.of(pageableRecipeResponse(entities, pageRequest, recipeIds.size()));
         }
 
         return response.orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NO_CONTENT));
@@ -95,12 +97,12 @@ public class RecipeController {
     }
     
     private ResponseEntity<CollectionModel<RecipeEntity>> pageableRecipeResponse(CollectionModel<RecipeEntity> entities,
-                                                                PageRequest request, Long totalNumOfEntities) {
+                                                                PageRequest request, int totalNumOfEntities) {
 
         boolean pageInRange = true;
 
         int firstPage = request.first().getPageNumber();
-        int lastPage =  Math.toIntExact(totalNumOfEntities) / request.getPageSize();
+        int lastPage =  totalNumOfEntities / request.getPageSize();
         int currentPage = request.getPageNumber();
         int pageSize = request.getPageSize();
 
