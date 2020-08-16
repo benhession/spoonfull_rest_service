@@ -34,13 +34,20 @@ public class RecipeService {
         return Math.toIntExact(recipeRepository.count());
     }
 
-    public Page<Recipe> findRecipesFromIdIn(List<Integer> ids, Pageable pageable) {
-        return recipeRepository.findAllByRecipeIdIn(ids, pageable);
+    public Page<Recipe> findRecipesFromIdIn(Collection<Integer> ids, Pageable pageable) {
+
+        List<Integer> idList = new LinkedList<>(ids);
+
+        return recipeRepository.findAllByRecipeIdIn(idList, pageable);
+    }
+
+    public List<Integer> findRecipeIdFromName(String name) {
+        return recipeRepository.recipeIdsFromRecipeName(name);
     }
 
     public List<Integer> findRecipeIdsFromIngredientIn(List<String> ingredients) {
 
-        List<String> theIngredients = new ArrayList<>(ingredients);
+        List<String> theIngredients = new LinkedList<>(ingredients);
 
         Set<Integer> ids = new HashSet<>(recipeRepository.recipeIdsFromIngredient(theIngredients.remove(0)));
 
@@ -49,6 +56,27 @@ public class RecipeService {
         return new ArrayList<>(ids);
     }
 
+    public List<Integer> findRecipeIdsFromKeywordsIn(List<String> keywords) {
+
+        List<String> theKeywords = new LinkedList<>(keywords);
+
+        Set<Integer> ids = new HashSet<>(recipeRepository.recipeIdsFromKeyword(theKeywords.remove(0)));
+
+        theKeywords.forEach(keyword -> ids.retainAll(recipeRepository.recipeIdsFromKeyword(keyword)));
+
+        return new ArrayList<>(ids);
+    }
+
+    public List<Integer> findRecipesFromGivenCategoriesIn(List<String> categories) {
+
+        List<String> theCategories = new LinkedList<>(categories);
+
+        Set<Integer> ids = new HashSet<>(recipeRepository.recipeIdsFromGivenCategory(theCategories.remove(0)));
+
+        theCategories.forEach(category -> ids.retainAll(recipeRepository.recipeIdsFromGivenCategory(category)));
+
+        return new ArrayList<>(ids);
+    }
 
 
 }

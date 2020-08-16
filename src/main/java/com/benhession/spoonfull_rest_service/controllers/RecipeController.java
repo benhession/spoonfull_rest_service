@@ -13,8 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping(path = "/recipes", produces = "application/json")
@@ -80,22 +79,63 @@ public class RecipeController {
     public ResponseEntity<CollectionModel<RecipeEntity>> recipeByIngredients(@RequestParam List<String> ingredients,
                                                             @RequestParam int page, @RequestParam int size) {
 
-        Optional<ResponseEntity<CollectionModel<RecipeEntity>>> response = Optional.empty();
-
         List<Integer> recipeIds = recipeService.findRecipeIdsFromIngredientIn(ingredients);
-        if(!recipeIds.isEmpty()) {
-            PageRequest pageRequest = PageRequest.of(page, size);
-            Page<Recipe> recipes = recipeService.findRecipesFromIdIn(recipeIds, pageRequest);
 
-            CollectionModel<RecipeEntity> entities = new RecipeEntityAssembler().toCollectionModel(recipes);
-            response = Optional.of(pageableRecipeResponse(entities, pageRequest, recipeIds.size()));
-        }
-
-        return response.orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NO_CONTENT));
+        return produceResponseFromIds(recipeIds, page, size);
 
 
     }
-    
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    @GetMapping("find_by")
+    public ResponseEntity<CollectionModel<RecipeEntity>> recipesBy(@RequestParam Optional<String> name,
+                                                                   @RequestParam Optional<List<String>> ingredients,
+                                                                   @RequestParam Optional<List<String>> keywords,
+                                                                   @RequestParam Optional<List<String>> categories,
+                                                                   @RequestParam int page, @RequestParam int size) {
+
+        Set<Integer> ids = new HashSet<>();
+
+        name.ifPresent(theName -> ids.addAll(recipeService.findRecipeIdFromName(theName)));
+
+        ingredients.ifPresent(i -> addToOrRetainIds(ids, i, recipeService::findRecipeIdsFromIngredientIn));
+
+        keywords.ifPresent(k -> addToOrRetainIds(ids, k, recipeService::findRecipeIdsFromKeywordsIn));
+
+        categories.ifPresent(c -> addToOrRetainIds(ids, c, recipeService::findRecipesFromGivenCategoriesIn));
+
+        return produceResponseFromIds(ids, page, size);
+
+    }
+
+    private interface CanFindIds {
+        Collection<Integer> findIds(List<String> searchWords);
+    }
+
+    private void addToOrRetainIds(Set<Integer> ids, List<String> param, CanFindIds lambda) {
+
+        if(ids.isEmpty()) {
+            ids.addAll(lambda.findIds(param));
+        } else {
+            ids.retainAll(lambda.findIds(param));
+        }
+    }
+
+    private ResponseEntity<CollectionModel<RecipeEntity>> produceResponseFromIds(Collection<Integer> ids, int page, int size) {
+
+        Optional<ResponseEntity<CollectionModel<RecipeEntity>>> response = Optional.empty();
+
+        if(!ids.isEmpty()) {
+            PageRequest pageRequest = PageRequest.of(page, size);
+            Page<Recipe> recipes = recipeService.findRecipesFromIdIn(ids, pageRequest);
+
+            CollectionModel<RecipeEntity> entities = new RecipeEntityAssembler().toCollectionModel(recipes);
+            response = Optional.of(pageableRecipeResponse(entities, pageRequest, ids.size()));
+        }
+
+        return response.orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NO_CONTENT));
+    }
+
     private ResponseEntity<CollectionModel<RecipeEntity>> pageableRecipeResponse(CollectionModel<RecipeEntity> entities,
                                                                 PageRequest request, int totalNumOfEntities) {
 

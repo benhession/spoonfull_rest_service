@@ -40,10 +40,8 @@ public class Recipe {
     @Column(name = "hash_value")
     private String hashValue;
 
-    @ElementCollection
-    @CollectionTable(name = "given_categories")
-    @Column(length = 500, name = "category")
-    private List<String> givenCategories;
+    @OneToMany(targetEntity = GivenCategory.class, mappedBy = "recipe")
+    private List<GivenCategory> givenCategories;
 
     @OneToMany(targetEntity = Ingredient.class, mappedBy = "recipe")
     private List<Ingredient> ingredients;
@@ -53,9 +51,7 @@ public class Recipe {
     @Column(length = 5000, name = "step")
     private List<String> method;
 
-    @ElementCollection
-    @CollectionTable(name = "keywords")
-    @Column(name = "keyword")
-    private List<String> keywords;
+    @OneToMany(targetEntity = Keyword.class, mappedBy = "recipe")
+    private List<Keyword> keywords;
 
 }

@@ -15,8 +15,23 @@ interface RecipeRepository extends PagingAndSortingRepository<Recipe, Integer> {
 
     Page<Recipe> findAllByRecipeIdIn(List<Integer> ids, Pageable pageable);
 
-    @Query(value = "SELECT i.recipe.recipeId " +
-            "FROM Ingredient i " +
-            "WHERE LOWER(i.description) LIKE LOWER(CONCAT('%',:ingredient, '%')) ")
+    @Query(value =  "SELECT r.recipeId " +
+                    "FROM Recipe r " +
+                    "WHERE LOWER(r.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<Integer> recipeIdsFromRecipeName(@Param("name") String recipeName);
+
+    @Query(value =  "SELECT i.recipe.recipeId " +
+                    "FROM Ingredient i "+
+                    "WHERE LOWER(i.description) LIKE LOWER(CONCAT('%', :ingredient, '%')) ")
     List<Integer> recipeIdsFromIngredient(@Param("ingredient") String ingredient);
+
+    @Query(value =  "SELECT k.recipe.recipeId " +
+                    "FROM Keyword k " +
+                    "WHERE LOWER(k.value) LIKE LOWER(CONCAT('%', :keyword, '%')) ")
+    List<Integer> recipeIdsFromKeyword(@Param("keyword") String keyword);
+
+    @Query(value =  "SELECT c.recipe.recipeId " +
+                    "FROM GivenCategory c " +
+                    "WHERE LOWER(c.category) LIKE LOWER(CONCAT('%', :category, '%')) ")
+    List<Integer> recipeIdsFromGivenCategory(@Param("category") String category);
 }
