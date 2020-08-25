@@ -1,6 +1,8 @@
 package com.benhession.spoonfull_rest_service.model;
 
 import lombok.Data;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.time.Duration;
@@ -41,17 +43,21 @@ public class Recipe {
     private String hashValue;
 
     @OneToMany(targetEntity = GivenCategory.class, mappedBy = "recipe")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<GivenCategory> givenCategories;
 
     @OneToMany(targetEntity = Ingredient.class, mappedBy = "recipe")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Ingredient> ingredients;
 
     @ElementCollection
     @CollectionTable(name = "method")
     @Column(length = 5000, name = "step")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<String> method;
 
     @OneToMany(targetEntity = Keyword.class, mappedBy = "recipe")
+    @LazyCollection(LazyCollectionOption.FALSE)
     private List<Keyword> keywords;
 
 }

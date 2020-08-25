@@ -1,32 +1,47 @@
 package com.benhession.spoonfull_rest_service.model;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Entity
 @Data
-@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
-@RequiredArgsConstructor
+@EqualsAndHashCode(exclude = "favourites")
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    private final String username;
-    private final String password;
+    private String username;
+    private String password;
 
+    @OneToMany(targetEntity = UserFavourite.class, mappedBy = "user", fetch = FetchType.EAGER)
+    private Set<UserFavourite> favourites;
+
+    public User() {}
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+        this.favourites = new HashSet<>();
+    }
+
+    public boolean addFavourite(UserFavourite userFavourite) {
+        userFavourite.setUser(this);
+        return favourites.add(userFavourite);
+    }
+
+    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
@@ -50,5 +65,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                '}';
     }
 }

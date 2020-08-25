@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +40,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         String REALM = "TEST_REALM";
         http
                 .authorizeRequests()
-                    .antMatchers("/recipes", "/recipes/**")
+                    .antMatchers("/recipes", "/recipes/**",
+                            "/user_favourites", "user_favourites/**", "user/current_user")
                         .hasRole("USER")
             .and()
                 .authorizeRequests()
@@ -50,9 +50,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
                 .httpBasic()
                     .realmName(REALM)
-            .and()
-                .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         ;
 
     }

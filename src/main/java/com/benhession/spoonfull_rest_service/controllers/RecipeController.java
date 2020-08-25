@@ -1,8 +1,8 @@
 package com.benhession.spoonfull_rest_service.controllers;
 
 import com.benhession.spoonfull_rest_service.data.RecipeService;
-import com.benhession.spoonfull_rest_service.entities.RecipeEntity;
-import com.benhession.spoonfull_rest_service.entities.RecipeEntityAssembler;
+import com.benhession.spoonfull_rest_service.representation_models.RecipeModel;
+import com.benhession.spoonfull_rest_service.representation_models.RecipeModelAssembler;
 import com.benhession.spoonfull_rest_service.model.Recipe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,26 +28,26 @@ public class RecipeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RecipeEntity> recipeById(@PathVariable("id") int id) {
+    public ResponseEntity<RecipeModel> recipeById(@PathVariable("id") int id) {
         Optional<Recipe> recipe = recipeService.recipeFromId(id);
 
         return recipe.map(
-                theRecipe -> new ResponseEntity<>(new RecipeEntityAssembler().toModel(theRecipe), HttpStatus.OK)
+                theRecipe -> new ResponseEntity<>(new RecipeModelAssembler().toModel(theRecipe), HttpStatus.OK)
         ).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @GetMapping("find_by")
-    public ResponseEntity<CollectionModel<RecipeEntity>> recipesBy(@RequestParam Optional<String> name,
-                                                                   @RequestParam Optional<List<String>> ingredients,
-                                                                   @RequestParam Optional<List<String>> keywords,
-                                                                   @RequestParam Optional<List<String>> categories,
-                                                                   @RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<CollectionModel<RecipeModel>> recipesBy(@RequestParam Optional<String> name,
+                                                                  @RequestParam Optional<List<String>> ingredients,
+                                                                  @RequestParam Optional<List<String>> keywords,
+                                                                  @RequestParam Optional<List<String>> categories,
+                                                                  @RequestParam int page, @RequestParam int size) {
 
         boolean pageInRange;
         Page<Recipe> recipes;
         Set<Integer> ids = new HashSet<>();
-        CollectionModel<RecipeEntity> recipeEntities;
+        CollectionModel<RecipeModel> recipeEntities;
 
         name.ifPresent(theName -> ids.addAll(recipeService.findRecipeIdFromName(theName)));
 
@@ -62,7 +62,7 @@ public class RecipeController {
             recipes = recipeService.findRecipesFromIdIn(ids, pageRequest);
             pageInRange = page < recipes.getTotalPages();
 
-            recipeEntities = new RecipeEntityAssembler().toCollectionModel(recipes);
+            recipeEntities = new RecipeModelAssembler().toCollectionModel(recipes);
 
         } else {
             return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);

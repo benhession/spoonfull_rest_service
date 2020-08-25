@@ -1,10 +1,10 @@
-package com.benhession.spoonfull_rest_service.entities;
+package com.benhession.spoonfull_rest_service.representation_models;
 
 import com.benhession.spoonfull_rest_service.model.GivenCategory;
 import com.benhession.spoonfull_rest_service.model.Ingredient;
 import com.benhession.spoonfull_rest_service.model.Keyword;
 import com.benhession.spoonfull_rest_service.model.Recipe;
-import lombok.Getter;
+import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Relation(value = "recipe", collectionRelation = "recipes")
-public class RecipeEntity extends RepresentationModel<RecipeEntity> {
+public class RecipeModel extends RepresentationModel<RecipeModel> {
 
     @Getter
     private final String name;
@@ -48,7 +48,7 @@ public class RecipeEntity extends RepresentationModel<RecipeEntity> {
     @Getter
     private final List<String> keywords;
 
-    public RecipeEntity(Recipe recipe) {
+    public RecipeModel(Recipe recipe) {
         this.name = recipe.getName();
         this.prepTime = recipe.getPrepTime();
         this.cookTime = recipe.getCookTime();

@@ -18,20 +18,8 @@ public class RecipeService {
         this.recipeRepository = recipeRepository;
     }
 
-    public Iterable<Recipe> findAll() {
-        return recipeRepository.findAll();
-    }
-
-    public Page<Recipe> recipesFrom(Pageable pageable) {
-        return recipeRepository.findAll(pageable);
-    }
-
     public Optional<Recipe> recipeFromId(int id) {
         return recipeRepository.findById(id);
-    }
-
-    public int count() {
-        return Math.toIntExact(recipeRepository.count());
     }
 
     public Page<Recipe> findRecipesFromIdIn(Collection<Integer> ids, Pageable pageable) {
