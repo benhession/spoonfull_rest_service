@@ -1,9 +1,6 @@
 package com.benhession.spoonfull_rest_service.representation_models;
 
-import com.benhession.spoonfull_rest_service.model.GivenCategory;
-import com.benhession.spoonfull_rest_service.model.Ingredient;
-import com.benhession.spoonfull_rest_service.model.Keyword;
-import com.benhession.spoonfull_rest_service.model.Recipe;
+import com.benhession.spoonfull_rest_service.model.*;
 import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
@@ -58,7 +55,7 @@ public class RecipeModel extends RepresentationModel<RecipeModel> {
         this.sourceUrl = recipe.getSourceUrl();
         this.givenCategories = recipe.getGivenCategories().stream().map(GivenCategory::getCategory).collect(Collectors.toList());
         this.ingredients = recipe.getIngredients().stream().map(Ingredient::getDescription).collect(Collectors.toList());
-        this.method = recipe.getMethod();
+        this.method = recipe.getMethod().stream().map(Method::getStep).collect(Collectors.toList());
         this.keywords = recipe.getKeywords().stream().map(Keyword::getValue).collect(Collectors.toList());
     }
 }

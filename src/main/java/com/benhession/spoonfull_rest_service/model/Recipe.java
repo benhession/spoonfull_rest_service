@@ -1,14 +1,20 @@
 package com.benhession.spoonfull_rest_service.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
+@EqualsAndHashCode(exclude = {"givenCategories", "ingredients", "keywords", "method"})
 @Table(name = "recipe")
+
 public class Recipe {
 
     @Id
@@ -41,18 +47,19 @@ public class Recipe {
     private String hashValue;
 
     @OneToMany(targetEntity = GivenCategory.class, mappedBy = "recipe")
-    private List<GivenCategory> givenCategories;
+    @Fetch(value = FetchMode.SUBSELECT)
+    private Set<GivenCategory> givenCategories;
 
     @OneToMany(targetEntity = Ingredient.class, mappedBy = "recipe")
-    private List<Ingredient> ingredients;
+    @Fetch(value = FetchMode.SUBSELECT)
+    private Set<Ingredient> ingredients;
 
-    @ElementCollection
-    @CollectionTable(name = "method")
-    @Column(length = 5000, name = "step")
-    @JoinColumn(name = "recipe_id", referencedColumnName = "recipe_id")
-    private List<String> method;
+    @OneToMany(targetEntity = Method.class, mappedBy = "recipe")
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<Method> method;
 
     @OneToMany(targetEntity = Keyword.class, mappedBy = "recipe")
-    private List<Keyword> keywords;
+    @Fetch(value = FetchMode.SUBSELECT)
+    private Set<Keyword> keywords;
 
 }
