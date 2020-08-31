@@ -19,8 +19,7 @@ public class UserFavouriteModelAssembler extends RepresentationModelAssemblerSup
 
         favouriteModel.setCategory(favourite.getUserCategory());
         favouriteModel.setRecipeName(favourite.getRecipe().getName());
-        favouriteModel.setId(favourite.getId());
-        favouriteModel.setRecipeModel(new RecipeModelAssembler().toModel(favourite.getRecipe()));
+        favouriteModel.setRecipe(new RecipeModelAssembler().toModel(favourite.getRecipe()));
 
         favouriteModel.add(WebMvcLinkBuilder.linkTo(
                 WebMvcLinkBuilder.methodOn(UserFavouritesController.class)
@@ -30,5 +29,4 @@ public class UserFavouriteModelAssembler extends RepresentationModelAssemblerSup
 
         return favouriteModel;
     }
-
 }

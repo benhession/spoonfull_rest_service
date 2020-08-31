@@ -12,9 +12,8 @@ import org.springframework.hateoas.server.core.Relation;
 @Relation(value = "user_favourite", collectionRelation = "user_favourites")
 public class UserFavouriteModel extends RepresentationModel<UserFavouriteModel> {
 
-    private int id;
     private String recipeName;
     private String category;
-    private RecipeModel recipeModel;
+    private RecipeModel recipe;
 
 }

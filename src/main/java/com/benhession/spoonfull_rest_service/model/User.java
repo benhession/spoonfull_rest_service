@@ -16,6 +16,7 @@ import java.util.Set;
 @Entity
 @Data
 @EqualsAndHashCode(exclude = "favourites")
+@NamedEntityGraph(name = "User.favourites", attributeNodes = @NamedAttributeNode("favourites"))
 public class User implements UserDetails {
 
     @Id
@@ -25,7 +26,7 @@ public class User implements UserDetails {
     private String username;
     private String password;
 
-    @OneToMany(targetEntity = UserFavourite.class, mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = UserFavourite.class, mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<UserFavourite> favourites;
 
     public User() {}

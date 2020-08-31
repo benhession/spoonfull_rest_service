@@ -21,11 +21,6 @@ public class UserService {
 
     public User save(User user) {
         userRepository.save(user);
-        Set<UserFavourite> favourites = user.getFavourites();
-
-        if (!favourites.isEmpty()) {
-            userFavouriteRepository.saveAll(user.getFavourites());
-        }
 
         return user;
     }
@@ -35,8 +30,7 @@ public class UserService {
     }
 
     public Optional<User> findUserById(Long id) {
-        return userRepository.findById(id);
+        return Optional.ofNullable(userRepository.findUserById(id));
     }
-
 
 }

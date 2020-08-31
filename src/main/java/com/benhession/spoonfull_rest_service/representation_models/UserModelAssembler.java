@@ -36,8 +36,7 @@ public class UserModelAssembler extends RepresentationModelAssemblerSupport<User
                 .map(favourite -> UserFavouriteModel.builder()
                             .recipeName(favourite.getRecipe().getName())
                             .category(favourite.getUserCategory())
-                            .id(favourite.getId())
-                            .recipeModel(new RecipeModelAssembler().toModel(favourite.getRecipe()))
+                            .recipe(new RecipeModelAssembler().toModel(favourite.getRecipe()))
                             .build()
                             .add(WebMvcLinkBuilder.linkTo(
                                     WebMvcLinkBuilder.methodOn(UserFavouritesController.class)

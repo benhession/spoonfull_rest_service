@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 interface UserFavouriteRepository extends PagingAndSortingRepository<UserFavourite, Integer> {
 
     UserFavourite findByIdAndUser(int id, User user);
+
 }

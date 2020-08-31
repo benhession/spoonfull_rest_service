@@ -19,6 +19,7 @@ public class GivenCategory {
     private int id;
 
     @ManyToOne
+    @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
     @NonNull

@@ -7,15 +7,16 @@ import com.benhession.spoonfull_rest_service.model.User;
 import com.benhession.spoonfull_rest_service.model.UserFavourite;
 import com.benhession.spoonfull_rest_service.representation_models.UserFavouriteModel;
 import com.benhession.spoonfull_rest_service.representation_models.UserFavouriteModelAssembler;
-import com.benhession.spoonfull_rest_service.representation_models.UserModel;
-import com.benhession.spoonfull_rest_service.representation_models.UserModelAssembler;
 import lombok.Data;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/user_favourites")
@@ -32,6 +33,7 @@ public class UserFavouritesController {
     @GetMapping("/{id}")
     public ResponseEntity<UserFavouriteModel> userFavouriteById(@PathVariable("id") int id,
                                                                 @AuthenticationPrincipal User user) {
+
 
         Optional<UserFavourite> userFavourite = Optional.ofNullable(userService.UserFavouriteById(id, user));
 
@@ -51,18 +53,20 @@ public class UserFavouritesController {
      * recipe could not be added as a favourite.
      * @param form the body of the post request of type AddFavouriteForm
      * @param user the authenticated user
-     * @return a response of type userModel for the authenticated user
+     * @return Response of CREATED containing the favourites of the authenticated user
      */
     @PostMapping("/add_favourite")
-    public ResponseEntity<UserModel> addFavourite(AddFavouriteForm form, @AuthenticationPrincipal User user) {
+    public ResponseEntity<CollectionModel<UserFavouriteModel>> addFavourite(AddFavouriteForm form, @AuthenticationPrincipal User user) {
 
         Optional<Recipe> theRecipe = recipeService.recipeFromId(form.getRecipe_id());
-        Optional<UserModel> createdUser = Optional.empty();
-        Optional<User> theUser = userService.findUserById(user.getId());
+        Optional<CollectionModel<UserFavouriteModel>> favouriteModels = Optional.empty();
+        User theUser = userService.findUserById(user.getId())
+                            .orElseThrow(() -> new HttpServerErrorException(HttpStatus.EXPECTATION_FAILED,
+                                    "Unable to get user with favourites from database"));
+
 
         // check if the recipe id is already present in the users favourites
-        if(theUser.isPresent() &&
-                theUser.get().getFavourites().stream()
+        if(theUser.getFavourites().stream()
                         .anyMatch((f -> f.getRecipe().getRecipeId() == form.getRecipe_id()))){
 
             return new ResponseEntity<>(null, HttpStatus.CONFLICT);
@@ -70,14 +74,17 @@ public class UserFavouritesController {
 
         // if the recipe id is a valid recipe add it to the users favourites
         if (theRecipe.isPresent()
-                && user.addFavourite(new UserFavourite(form.getCategory(), theRecipe.get()))) {
+                && theUser.addFavourite(new UserFavourite(form.getCategory(), theRecipe.get()))) {
 
-            Optional<User> returnedUser = Optional.ofNullable(userService.save(user));
-            createdUser = returnedUser.map(u -> new UserModelAssembler().toModel(u));
+            Optional<User> returnedUser = Optional.ofNullable(userService.save(theUser));
+            Optional<Set<UserFavourite>> favourites = returnedUser.map(User::getFavourites);
+
+            favouriteModels = favourites.map(userFavourites -> new UserFavouriteModelAssembler()
+                    .toCollectionModel(userFavourites));
 
         }
 
-        return createdUser.map(u -> new ResponseEntity<>(u, HttpStatus.CREATED))
+        return favouriteModels.map(models -> new ResponseEntity<>(models, HttpStatus.CREATED))
                     .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.EXPECTATION_FAILED));
 
     }
@@ -86,5 +93,25 @@ public class UserFavouritesController {
     private static class AddFavouriteForm {
         int recipe_id;
         String category;
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<CollectionModel<UserFavouriteModel>> getUserFavourites(@AuthenticationPrincipal User user) {
+
+        User theUser = userService.findUserById(user.getId())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.EXPECTATION_FAILED,
+                        "Unable to get user with favourites from database"));
+
+        Set<UserFavourite> userFavourites = theUser.getFavourites();
+
+        if(!userFavourites.isEmpty()) {
+
+            CollectionModel<UserFavouriteModel> favCollection =
+                    new UserFavouriteModelAssembler().toCollectionModel(userFavourites);
+
+            return new ResponseEntity<>(favCollection, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+
     }
 }
