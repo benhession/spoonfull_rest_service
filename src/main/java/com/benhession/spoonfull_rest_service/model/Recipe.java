@@ -2,6 +2,7 @@ package com.benhession.spoonfull_rest_service.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -14,7 +15,7 @@ import java.util.Set;
 @Entity
 @EqualsAndHashCode(exclude = {"givenCategories", "ingredients", "keywords", "method"})
 @Table(name = "recipe")
-
+@BatchSize(size = 100)
 public class Recipe {
 
     @Id

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class UserService {
@@ -20,12 +19,10 @@ public class UserService {
     }
 
     public User save(User user) {
-        userRepository.save(user);
-
-        return user;
+        return userRepository.save(user);
     }
 
-    public UserFavourite UserFavouriteById(int id, User user) {
+    public UserFavourite userFavouriteById(int id, User user) {
         return userFavouriteRepository.findByIdAndUser(id, user);
     }
 
@@ -33,4 +30,8 @@ public class UserService {
         return Optional.ofNullable(userRepository.findUserById(id));
     }
 
+    public void removeFavourite(UserFavourite favourite, User user) {
+        userFavouriteRepository.delete(favourite);
+        userRepository.save(user);
+    }
 }

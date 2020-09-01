@@ -1,6 +1,7 @@
 package com.benhession.spoonfull_rest_service.model;
 
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
 

@@ -12,6 +12,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -35,7 +36,7 @@ public class UserFavouritesController {
                                                                 @AuthenticationPrincipal User user) {
 
 
-        Optional<UserFavourite> userFavourite = Optional.ofNullable(userService.UserFavouriteById(id, user));
+        Optional<UserFavourite> userFavourite = Optional.ofNullable(userService.userFavouriteById(id, user));
 
         if (userFavourite.isPresent()) {
             UserFavouriteModel model = new UserFavouriteModelAssembler().toModel(userFavourite.get());
@@ -56,6 +57,7 @@ public class UserFavouritesController {
      * @return Response of CREATED containing the favourites of the authenticated user
      */
     @PostMapping("/add_favourite")
+    @Transactional
     public ResponseEntity<CollectionModel<UserFavouriteModel>> addFavourite(AddFavouriteForm form, @AuthenticationPrincipal User user) {
 
         Optional<Recipe> theRecipe = recipeService.recipeFromId(form.getRecipe_id());
@@ -77,10 +79,9 @@ public class UserFavouritesController {
                 && theUser.addFavourite(new UserFavourite(form.getCategory(), theRecipe.get()))) {
 
             Optional<User> returnedUser = Optional.ofNullable(userService.save(theUser));
-            Optional<Set<UserFavourite>> favourites = returnedUser.map(User::getFavourites);
 
-            favouriteModels = favourites.map(userFavourites -> new UserFavouriteModelAssembler()
-                    .toCollectionModel(userFavourites));
+            favouriteModels = returnedUser.map(u -> new UserFavouriteModelAssembler()
+                    .toCollectionModel(u.getFavourites()));
 
         }
 
@@ -113,5 +114,28 @@ public class UserFavouritesController {
         }
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<UserFavouriteModel> deleteUserFavourite(@PathVariable(name = "id") int favouriteId,
+                                                                  @AuthenticationPrincipal User user) {
+
+        User theUser = userService.findUserById(user.getId())
+                .orElseThrow(() -> new HttpServerErrorException(HttpStatus.EXPECTATION_FAILED,
+                "Unable to get user with favourites from database"));
+
+        UserFavourite theFavourite = userService.userFavouriteById(favouriteId, user);
+
+        Set<UserFavourite> favourites = theUser.getFavourites();
+
+        if(favourites.remove(theFavourite)) {
+
+            userService.removeFavourite(theFavourite, theUser);
+            UserFavouriteModel model = new UserFavouriteModelAssembler().toModel(theFavourite);
+            return new ResponseEntity<>(model, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
