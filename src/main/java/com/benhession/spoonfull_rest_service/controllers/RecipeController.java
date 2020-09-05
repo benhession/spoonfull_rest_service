@@ -46,7 +46,7 @@ public class RecipeController {
 
         boolean pageInRange;
         Page<Recipe> recipes;
-        Set<Integer> ids = new HashSet<>();
+        Set<Long> ids = new HashSet<>();
         CollectionModel<RecipeModel> recipeEntities;
 
         name.ifPresent(theName -> ids.addAll(recipeService.findRecipeIdFromName(theName)));
@@ -121,7 +121,7 @@ public class RecipeController {
      * Single method interface for a find ids query
      */
     private interface IdQuery {
-        Collection<Integer> findIds(List<String> searchWords);
+        Collection<Long> findIds(List<String> searchWords);
     }
 
     /**
@@ -132,7 +132,7 @@ public class RecipeController {
      * @param paramList the the list of values from a request parameter
      * @param idQuery   the method reference or lambda expression that finds the ids
      */
-    private void addToOrRetainIds(Set<Integer> ids, List<String> paramList, IdQuery idQuery) {
+    private void addToOrRetainIds(Set<Long> ids, List<String> paramList, IdQuery idQuery) {
 
         if (ids.isEmpty()) {
             ids.addAll(idQuery.findIds(paramList));

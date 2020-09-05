@@ -22,7 +22,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public UserFavourite userFavouriteById(int id, User user) {
+    public UserFavourite userFavouriteById(long id, User user) {
         return userFavouriteRepository.findByIdAndUser(id, user);
     }
 

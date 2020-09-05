@@ -21,7 +21,7 @@ public class Recipe {
     @Id
     @GeneratedValue
     @Column(name = "recipe_id")
-    private int recipeId;
+    private long recipeId;
 
     @Column(name = "name")
     private String name;

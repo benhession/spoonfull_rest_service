@@ -16,7 +16,7 @@ public class GivenCategory {
 
     @Id
     @GeneratedValue
-    private int id;
+    private long id;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id", nullable = false)

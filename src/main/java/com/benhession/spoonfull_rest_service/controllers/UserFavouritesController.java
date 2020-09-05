@@ -34,7 +34,7 @@ public class UserFavouritesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserFavouriteModel> userFavouriteById(@PathVariable("id") int id,
+    public ResponseEntity<UserFavouriteModel> userFavouriteById(@PathVariable("id") long id,
                                                                 @AuthenticationPrincipal User user) {
 
 
@@ -96,7 +96,7 @@ public class UserFavouritesController {
 
     @Data
     private static class AddFavouriteForm {
-        int recipe_id;
+        long recipe_id;
         String category;
     }
 
@@ -122,7 +122,7 @@ public class UserFavouritesController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity<UserFavouriteModel> deleteUserFavourite(@PathVariable(name = "id") int favouriteId,
+    public ResponseEntity<UserFavouriteModel> deleteUserFavourite(@PathVariable(name = "id") long favouriteId,
                                                                   @AuthenticationPrincipal User user) {
 
         User theUser = userService.findUserById(user.getId())
@@ -147,7 +147,7 @@ public class UserFavouritesController {
 
     @PatchMapping("/{id}")
     @Transactional
-    public ResponseEntity<UserFavouriteModel> changeCategory(@PathVariable(name = "id") int favouriteId,
+    public ResponseEntity<UserFavouriteModel> changeCategory(@PathVariable(name = "id") long favouriteId,
                                                              @RequestBody NewCategoryForm form,
                                                              @AuthenticationPrincipal User user) {
 

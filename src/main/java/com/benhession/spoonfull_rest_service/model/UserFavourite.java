@@ -16,7 +16,7 @@ public class UserFavourite {
     @Id
     @GeneratedValue
     @EqualsAndHashCode.Exclude
-    private int id;
+    private long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

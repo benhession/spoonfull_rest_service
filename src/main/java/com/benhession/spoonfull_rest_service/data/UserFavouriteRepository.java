@@ -6,8 +6,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface UserFavouriteRepository extends PagingAndSortingRepository<UserFavourite, Integer> {
+interface UserFavouriteRepository extends PagingAndSortingRepository<UserFavourite, Long> {
 
-    UserFavourite findByIdAndUser(int id, User user);
+    UserFavourite findByIdAndUser(Long id, User user);
 
 }
