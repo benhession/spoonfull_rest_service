@@ -15,7 +15,7 @@ import java.util.Set;
 @Entity
 @EqualsAndHashCode(exclude = {"givenCategories", "ingredients", "keywords", "method"})
 @Table(name = "recipe")
-@BatchSize(size = 100)
+@BatchSize(size = 50)
 public class Recipe {
 
     @Id

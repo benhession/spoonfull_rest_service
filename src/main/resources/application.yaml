@@ -21,6 +21,9 @@ logging:
   level:
     org.springframework.transaction: TRACE
 
+server:
+  error:
+    include-message: always
 
 
 
