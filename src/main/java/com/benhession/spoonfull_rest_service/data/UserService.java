@@ -30,6 +30,10 @@ public class UserService {
         return Optional.ofNullable(userRepository.findUserById(id));
     }
 
+    public Optional<User> findUserByAuthId(String authId) {
+        return Optional.ofNullable(userRepository.findUserByAuthId(authId));
+    }
+
     public void removeFavourite(UserFavourite favourite, User user) {
         userFavouriteRepository.delete(favourite);
         userRepository.save(user);

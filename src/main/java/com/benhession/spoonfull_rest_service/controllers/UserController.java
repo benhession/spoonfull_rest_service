@@ -4,11 +4,12 @@ import com.benhession.spoonfull_rest_service.data.UserService;
 import com.benhession.spoonfull_rest_service.model.User;
 import com.benhession.spoonfull_rest_service.representation_models.UserModel;
 import com.benhession.spoonfull_rest_service.representation_models.UserModelAssembler;
-import com.benhession.spoonfull_rest_service.security.UserDetailsForm;
+import com.benhession.spoonfull_rest_service.security.UserPrincipalExtractor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,19 +21,17 @@ import java.util.Optional;
 @RequestMapping("/user")
 @CrossOrigin("*")
 public class UserController {
-    private final PasswordEncoder passwordEncoder;
     private final UserService userService;
 
-    public UserController(PasswordEncoder passwordEncoder, UserService userService) {
-        this.passwordEncoder = passwordEncoder;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @PostMapping(value = "register", consumes = "application/json")
-    @ResponseStatus(HttpStatus.CREATED)
-    public User registerUser(@RequestBody UserDetailsForm form) {
-        return userService.save(form.toUser(passwordEncoder));
-    }
+//    @PostMapping(value = "register", consumes = "application/json")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public User registerUser(@RequestBody UserDetailsForm form) {
+//        return userService.save(form.toUser(passwordEncoder));
+//    }
 
     @GetMapping(value = "/csrf-token")
     public @ResponseBody String getCsrfToken(HttpServletRequest request, HttpServletResponse response) {
@@ -43,7 +42,10 @@ public class UserController {
     }
 
     @GetMapping(value = "/current_user")
-    public ResponseEntity<UserModel> getCurrentUser(@AuthenticationPrincipal User user) {
+    public ResponseEntity<UserModel> getCurrentUser(@AuthenticationPrincipal Jwt principal) {
+
+        UserPrincipalExtractor extractor = new UserPrincipalExtractor(userService);
+        User user = extractor.extractUser(principal);
 
         Optional<User> currentUser = Optional.ofNullable(user);
 

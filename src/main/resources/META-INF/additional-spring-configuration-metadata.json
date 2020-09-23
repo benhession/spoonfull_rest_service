@@ -1,1 +1,13 @@
-{ "properties": [ ] }
+{
+  "properties": [
+    {
+      "name": "claim.aud",
+      "type": "java.lang.String",
+      "description": "Description for claim.aud."
+    },
+    {
+      "name": "jwkSetUri",
+      "type": "java.lang.String",
+      "description": "Description for jwkSetUri."
+    }
+  ] }

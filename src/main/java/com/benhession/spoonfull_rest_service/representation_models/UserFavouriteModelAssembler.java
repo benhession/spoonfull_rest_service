@@ -4,6 +4,8 @@ import com.benhession.spoonfull_rest_service.controllers.UserFavouritesControlle
 import com.benhession.spoonfull_rest_service.model.UserFavourite;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 public class UserFavouriteModelAssembler extends RepresentationModelAssemblerSupport<UserFavourite,
         UserFavouriteModel> {
@@ -23,7 +25,8 @@ public class UserFavouriteModelAssembler extends RepresentationModelAssemblerSup
 
         favouriteModel.add(WebMvcLinkBuilder.linkTo(
                 WebMvcLinkBuilder.methodOn(UserFavouritesController.class)
-                .userFavouriteById(favourite.getId(), favourite.getUser())
+                .userFavouriteById(favourite.getId(), (Jwt) SecurityContextHolder.getContext()
+                        .getAuthentication().getPrincipal())
             ).withSelfRel()
         );
 

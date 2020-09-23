@@ -5,6 +5,8 @@ import com.benhession.spoonfull_rest_service.model.User;
 import com.benhession.spoonfull_rest_service.model.UserFavourite;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +42,8 @@ public class UserModelAssembler extends RepresentationModelAssemblerSupport<User
                             .build()
                             .add(WebMvcLinkBuilder.linkTo(
                                     WebMvcLinkBuilder.methodOn(UserFavouritesController.class)
-                                    .userFavouriteById(favourite.getId(), favourite.getUser())
+                                    .userFavouriteById(favourite.getId(),
+                                            (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                                 ).withSelfRel()
                             )
 
