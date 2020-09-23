@@ -9,4 +9,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     @EntityGraph(value = "User.favourites")
     User findUserById(Long id);
+
+    User findUserByAuthId(String authId);
 }

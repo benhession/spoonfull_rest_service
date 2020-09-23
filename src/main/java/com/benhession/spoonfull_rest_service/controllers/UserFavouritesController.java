@@ -7,14 +7,15 @@ import com.benhession.spoonfull_rest_service.model.User;
 import com.benhession.spoonfull_rest_service.model.UserFavourite;
 import com.benhession.spoonfull_rest_service.representation_models.UserFavouriteModel;
 import com.benhession.spoonfull_rest_service.representation_models.UserFavouriteModelAssembler;
+import com.benhession.spoonfull_rest_service.security.UserPrincipalExtractor;
 import lombok.Data;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -35,8 +36,10 @@ public class UserFavouritesController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserFavouriteModel> userFavouriteById(@PathVariable("id") long id,
-                                                                @AuthenticationPrincipal User user) {
+                                                                @AuthenticationPrincipal Jwt principal) {
 
+        UserPrincipalExtractor extractor = new UserPrincipalExtractor(userService);
+        User user = extractor.extractUser(principal);
 
         Optional<UserFavourite> userFavourite = Optional.ofNullable(userService.userFavouriteById(id, user));
 
@@ -55,13 +58,16 @@ public class UserFavouritesController {
      * a HTTP status of CONFLICT if the recipe is already a favourite or a HTTP status of EXPECTATION_FAILED if the
      * recipe could not be added as a favourite.
      * @param form the body of the post request of type AddFavouriteForm
-     * @param user the authenticated user
+     * @param principal the authenticated users JWT token
      * @return Response of CREATED containing the favourites of the authenticated user
      */
     @PostMapping("/")
     @Transactional
     public ResponseEntity<CollectionModel<UserFavouriteModel>> addFavourite(AddFavouriteForm form,
-                                                                            @AuthenticationPrincipal User user) {
+                                                                            @AuthenticationPrincipal Jwt principal) {
+
+        UserPrincipalExtractor extractor = new UserPrincipalExtractor(userService);
+        User user = extractor.extractUser(principal);
 
         Optional<Recipe> theRecipe = recipeService.recipeFromId(form.getRecipe_id());
         Optional<CollectionModel<UserFavouriteModel>> favouriteModels = Optional.empty();
@@ -101,7 +107,10 @@ public class UserFavouritesController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<CollectionModel<UserFavouriteModel>> getUserFavourites(@AuthenticationPrincipal User user) {
+    public ResponseEntity<CollectionModel<UserFavouriteModel>> getUserFavourites(@AuthenticationPrincipal Jwt principal) {
+
+        UserPrincipalExtractor extractor = new UserPrincipalExtractor(userService);
+        User user = extractor.extractUser(principal);
 
         User theUser = userService.findUserById(user.getId())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.EXPECTATION_FAILED,
@@ -123,7 +132,10 @@ public class UserFavouritesController {
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<UserFavouriteModel> deleteUserFavourite(@PathVariable(name = "id") long favouriteId,
-                                                                  @AuthenticationPrincipal User user) {
+                                                                  @AuthenticationPrincipal Jwt principal) {
+
+        UserPrincipalExtractor extractor = new UserPrincipalExtractor(userService);
+        User user = extractor.extractUser(principal);
 
         User theUser = userService.findUserById(user.getId())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.EXPECTATION_FAILED,
@@ -149,7 +161,10 @@ public class UserFavouritesController {
     @Transactional
     public ResponseEntity<UserFavouriteModel> changeCategory(@PathVariable(name = "id") long favouriteId,
                                                              @RequestBody NewCategoryForm form,
-                                                             @AuthenticationPrincipal User user) {
+                                                             @AuthenticationPrincipal Jwt principal) {
+
+        UserPrincipalExtractor extractor = new UserPrincipalExtractor(userService);
+        User user = extractor.extractUser(principal);
 
         User theUser = userService.findUserById(user.getId())
                 .orElseThrow(() -> new HttpServerErrorException(HttpStatus.EXPECTATION_FAILED,
